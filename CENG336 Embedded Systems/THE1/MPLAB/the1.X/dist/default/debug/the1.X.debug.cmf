@@ -1,0 +1,213 @@
+%CMF
+# %PSECTS Section
+# For each object file, details of its psects are enumerated here.
+# The begining of the section is indicated by %PSECTS.  The first
+# line indicates the name of the first object file, e.g.
+#    $foo.obj
+# Each line that follows describes a psect in that object file, until
+# the next object file.  The lines that describe a psect have the
+# format:
+#    <psect name> <class name> <space> <link address> <load addresses> <length> <delta>
+# All addresses and the length are given in unqualified hexadecimal
+# in delta units.  Any other numeric values are decimal.
+%PSECTS
+$build/default/debug/_ext/43898991/the_1_1234567.o
+resetVec CODE 0 1FFFC 1FFFC 4 1
+main - 0 0 0 4E 1
+config CONFIG 4 300001 300001 D 1
+# %UNUSED Section
+# This section enumerates the unused ranges of each CLASS. Each entry
+# is described on a single line as follows:
+#    <class name> <range> <delta>
+# Addresses given in the range are in hexadecimal and units of delta.
+%UNUSED
+RAM 60-F5F 1
+SFR F60-FFF 1
+BANK0 60-FF 1
+BANK1 100-1FF 1
+BANK2 200-2FF 1
+BANK3 300-3FF 1
+BANK4 400-4FF 1
+BANK5 500-5FF 1
+BANK6 600-6FF 1
+BANK7 700-7FF 1
+BANK8 800-8FF 1
+BANK9 900-9FF 1
+CONST 4E-1FFFB 1
+IDLOC 200000-200007 1
+SMALLCONST 1000-1FFFB 1
+CODE 4E-1FFFB 1
+BANK10 A00-AFF 1
+BANK11 B00-BFF 1
+BANK12 C00-CFF 1
+BANK13 D00-DFF 1
+BANK14 E00-EFF 1
+BANK15 F00-F5F 1
+BIGRAM 4E-F5F 1
+COMRAM 0-5F 1
+CONFIG 300000-300000 1
+EEDATA F00000-F003FF 1
+MEDIUMCONST 1000-FFFF 1
+MEDIUMCONST 11000-1FFFB 1
+# %LINETAB Section
+# This section enumerates the file/line to address mappings.
+# The beginning of the section is indicated by %LINETAB.
+# The first line indicates the name of the first object file, e.g.
+#   $foo.obj
+# Each line that follows describes a single mapping until the next
+# object file.  Mappings have the following format:
+#    <address> <psect name> <class name> ><line number>:<file name>
+# The address is absolute and given given in unqualified hex 
+# in delta units of the psect. All mappings within an object file
+# are in ascending order of addresses.
+# All other numeric values are in decimal.
+%LINETAB
+$build/default/debug/_ext/43898991/the_1_1234567.o
+0 main ABS >26:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+0 main ABS >27:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+2 main ABS >28:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+4 main ABS >29:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+6 main ABS >30:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+8 main ABS >31:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+A main ABS >32:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+C main ABS >33:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+E main ABS >34:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+10 main ABS >35:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+12 main ABS >36:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+14 main ABS >38:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+16 main ABS >39:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+1A main ABS >42:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+1A main ABS >43:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+1C main ABS >44:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+20 main ABS >46:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+20 main ABS >47:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+22 main ABS >48:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+24 main ABS >49:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+26 main ABS >50:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+28 main ABS >51:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+2A main ABS >53:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+2A main ABS >54:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+2E main ABS >56:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+2E main ABS >57:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+30 main ABS >58:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+34 main ABS >59:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+38 main ABS >61:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+38 main ABS >62:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+3A main ABS >63:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+3C main ABS >64:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+40 main ABS >67:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+40 main ABS >68:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+44 main ABS >69:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+44 main ABS >70:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+46 main ABS >71:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+4A main ABS >72:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+1FFFC resetVec CODE >9:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+1FFFC resetVec CODE >10:D:\Ali\Ders\CENG336\THE1/the_1_1234567.s
+# %SYMTAB Section
+# An enumeration of all symbols in the program.
+# The beginning of the section is indicated by %SYMTAB.
+# Each line describes a single symbol as follows:
+#    <label> <value> [-]<load-adj> <class> <space> <psect> <file-name>
+# The value and load-adj are both in unqualified hexadecimal.
+# All other numeric values are in decimal.  The load-adj is the
+# quantity one needs to add to the symbol value in order to obtain the load
+# address of the symbol.  This value may be signed. If the symbol
+# was defined in a psect then <psect> will be "-". File-name
+# is the name of the object file in which the symbol was defined.
+%SYMTAB
+__Hspace_0 20000 0 ABS 0 - -
+__Hspace_1 0 0 ABS 0 - -
+__Hspace_3 0 0 ABS 0 - -
+__Hspace_4 60000F 0 ABS 0 - -
+__Hudata_bank0 4E 0 ABS 0 udata_bank0 -
+__Hudata_bank1 4E 0 ABS 0 udata_bank1 -
+__Hudata_bank2 4E 0 ABS 0 udata_bank2 -
+__Hudata_bank3 4E 0 ABS 0 udata_bank3 -
+__Hudata_bank4 4E 0 ABS 0 udata_bank4 -
+__Hudata_bank5 4E 0 ABS 0 udata_bank5 -
+__Hudata_bank6 4E 0 ABS 0 udata_bank6 -
+__Hudata_bank7 4E 0 ABS 0 udata_bank7 -
+__Hudata_bank8 4E 0 ABS 0 udata_bank8 -
+__Hudata_bank9 4E 0 ABS 0 udata_bank9 -
+__LresetVec 4E 0 ABS 0 resetVec -
+__Hudata_bank10 4E 0 ABS 0 udata_bank10 -
+__Hudata_bank11 4E 0 ABS 0 udata_bank11 -
+__Hudata_bank12 4E 0 ABS 0 udata_bank12 -
+__Hudata_bank13 4E 0 ABS 0 udata_bank13 -
+__Hudata_bank14 4E 0 ABS 0 udata_bank14 -
+__Hudata_bank15 4E 0 ABS 0 udata_bank15 -
+__HresetVec 4E 0 ABS 0 resetVec -
+__Hedata 4E 0 ABS 0 edata -
+__Htasks 4E 0 ABS 0 tasks -
+__Hudata 4E 0 ABS 0 udata -
+__Hutils 4E 0 ABS 0 utils -
+__Hconfig 30000E 0 CONFIG 4 config -
+__Ledata 4E 0 ABS 0 edata -
+__Ltasks 4E 0 ABS 0 tasks -
+__Ludata 4E 0 ABS 0 udata -
+__Lutils 4E 0 ABS 0 utils -
+__Hcode 4E 0 ABS 0 code -
+__Hdata 4E 0 ABS 0 data -
+__Hmain 4E 0 ABS 0 main -
+__Lcode 4E 0 ABS 0 code -
+__Ldata 4E 0 ABS 0 data -
+__Lmain 0 0 ABS 0 main -
+__S0 20000 0 ABS 0 - -
+__S1 0 0 ABS 0 - -
+__S3 0 0 ABS 0 - -
+__Ludata_bank10 4E 0 ABS 0 udata_bank10 -
+__Ludata_bank11 4E 0 ABS 0 udata_bank11 -
+__Ludata_bank12 4E 0 ABS 0 udata_bank12 -
+__Ludata_bank13 4E 0 ABS 0 udata_bank13 -
+__Ludata_bank14 4E 0 ABS 0 udata_bank14 -
+__Ludata_bank15 4E 0 ABS 0 udata_bank15 -
+__Lconfig 0 0 CONFIG 4 config -
+__Lspace_0 0 0 ABS 0 - -
+__Lspace_1 0 0 ABS 0 - -
+__Lspace_3 0 0 ABS 0 - -
+__Lspace_4 0 0 ABS 0 - -
+__Ludata_bank0 4E 0 ABS 0 udata_bank0 -
+__Ludata_bank1 4E 0 ABS 0 udata_bank1 -
+__Ludata_bank2 4E 0 ABS 0 udata_bank2 -
+__Ludata_bank3 4E 0 ABS 0 udata_bank3 -
+__Ludata_bank4 4E 0 ABS 0 udata_bank4 -
+__Ludata_bank5 4E 0 ABS 0 udata_bank5 -
+__Ludata_bank6 4E 0 ABS 0 udata_bank6 -
+__Ludata_bank7 4E 0 ABS 0 udata_bank7 -
+__Ludata_bank8 4E 0 ABS 0 udata_bank8 -
+__Ludata_bank9 4E 0 ABS 0 udata_bank9 -
+__Hudata_acs 4E 0 ABS 0 udata_acs -
+__Ludata_acs 4E 0 ABS 0 udata_acs -
+# %SPLITSTAB Section
+# This section enumerates all the psect splits performed by the assembler.
+# The beginning of the section is indicated by %SPLITSTAB.
+# Each line is a record a particular split, where the parent psect is on
+# the left and the child on the right.  Note that a child psect is always
+# split form the top of the parent psect. All splits from a given parent
+# are listed in the order in which they occurred.
+%SPLITSTAB
+# %DABS Section
+# This section contains a table of all usuage of the assember
+# directive DABS in the program. Each line has the following format:
+#   <name> <space> <address> <size>
+# If the DABS was originally labelled then that shall be <name>,
+# otherwise name will be "-".  The <space> number is in decimal.
+# <address> and <size> are in byte units as unqaulified hexadecimal
+%DABS
+# %SEGMENTS Section
+# This sections enumerates the segments of the program.  Each segment
+# is described on a single line as follows:
+#    <name> <space> <link address> <file address> <size> <delta>
+# Addresses and size are in unqualified hexadecimal.  The link address
+# and size are in units of delta. The file address is in units of bytes.
+# All other numeric quantities are in decimal.
+%SEGMENTS
+resetVec 0 1FFFC 1FFFC 4 1
+# %NOTES Section
+# This section contains data of all the note-psects.  The beginning of the section
+# is indicated by %NOTES. The first line indicates the name and decimal
+# byte-length of the first note-psect, e.g.
+#   $codecov_info_hdr 16
+# Each line that follows contains the byte-data of the psect in hexadecimal as a
+# space-separated list. These lines are limited to 16 bytes of data.
+%NOTES

@@ -1,0 +1,83 @@
+0x000:                      | .pos 0
+0x000: 30f40008000000000000 | 	irmovq Stack, %rsp
+0x00a: 30f70002000000000000 | 	irmovq root, %rdi
+0x014: 801e00000000000000   | 	call max_btree
+0x01d: 00                   | 	halt
+                            | 
+0x01e:                      | max_btree:
+0x01e: 30f00000000000000080 | 	irmovq $-9223372036854775808, %rax # max = LONG_MIN
+0x028: 6277                 | 	andq %rdi, %rdi # if(root)
+0x02a: 743400000000000000   | 	jne true
+0x033: 90                   | 	ret
+                            | 
+0x034:                      | true:
+0x034: a09f                 | 	pushq %r9
+0x036: a08f                 | 	pushq %r8
+                            | 
+0x038: 50870000000000000000 | 	mrmovq (%rdi), %r8 # max = root->value use this to compare candidate and max
+0x042: 2079                 | 	rrmovq %rdi, %r9 # backup %rdi 
+                            | 	
+0x044: 50790800000000000000 | 	mrmovq 0x8(%r9), %rdi # max_btree(root->left)
+0x04e: 801e00000000000000   | 	call max_btree
+0x057: 200a                 | 	rrmovq %rax, %r10 # copy value into %r10
+0x059: 618a                 | 	subq %r8, %r10
+0x05b: 716600000000000000   | 	jle maxnotupdated1 # jump if candidate <= max
+0x064: 2008                 | 	rrmovq %rax, %r8 # max = candidate	
+                            | 
+0x066:                      | maxnotupdated1:
+0x066: 50791000000000000000 | 	mrmovq 0x10(%r9), %rdi # max_btree(root->right)
+0x070: 801e00000000000000   | 	call max_btree
+0x079: 200a                 | 	rrmovq %rax, %r10 # copy value into %r10
+0x07b: 618a                 | 	subq %r8, %r10
+                            | 
+0x07d: 718800000000000000   | 	jle maxnotupdated2 # jump if candidate <= max
+0x086: 2008                 | 	rrmovq %rax, %r8 # max = candidate	
+                            | 	
+0x088:                      | maxnotupdated2:
+0x088: 2080                 | 	rrmovq %r8, %rax # return max
+0x08a: b08f                 | 	popq %r8
+0x08c: b09f                 | 	popq %r9
+0x08e: 90                   | 	ret
+                            | 	
+                            | # A binary (not search!) tree,
+                            | # absolutely positioned again.
+0x200:                      | .pos 0x200
+0x200:                      | root:
+0x200: 0500000000000000     | .quad 5
+0x208: 1802000000000000     | .quad node7
+0x210: 7802000000000000     | .quad node12
+                            | 
+0x218:                      | node7:
+0x218: 0700000000000000     | .quad 7
+0x220: 3002000000000000     | .quad node25
+0x228: 4802000000000000     | .quad node905
+0x230:                      | node25:
+0x230: 1900000000000000     | .quad 25
+0x238: 0000000000000000     | .quad 0
+0x240: 0000000000000000     | .quad 0
+0x248:                      | node905:
+0x248: 8903000000000000     | .quad 905
+0x250: 6002000000000000     | .quad nodem1
+0x258: 0000000000000000     | .quad 0
+0x260:                      | nodem1:
+0x260: ffffffffffffffff     | .quad -1
+0x268: 0000000000000000     | .quad 0
+0x270: 0000000000000000     | .quad 0
+0x278:                      | node12:
+0x278: 0c00000000000000     | .quad 12
+0x280: 9002000000000000     | .quad node219
+0x288: a802000000000000     | .quad nodem10
+0x290:                      | node219:
+0x290: db00000000000000     | .quad 219
+0x298: 0000000000000000     | .quad 0
+0x2a0: 0000000000000000     | .quad 0
+0x2a8:                      | nodem10:
+0x2a8: f6ffffffffffffff     | .quad -10
+0x2b0: 0000000000000000     | .quad 0
+0x2b8: c002000000000000     | .quad node331
+0x2c0:                      | node331:
+0x2c0: 4b01000000000000     | .quad 331
+0x2c8: 0000000000000000     | .quad 0
+0x2d0: 0000000000000000     | .quad 0
+0x800:                      | .pos 0x800:
+0x800:                      | Stack:

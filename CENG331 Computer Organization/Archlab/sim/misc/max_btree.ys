@@ -1,0 +1,83 @@
+.pos 0
+	irmovq Stack, %rsp
+	irmovq root, %rdi
+	call max_btree
+	halt
+
+max_btree:
+	irmovq $-9223372036854775808, %rax # max = LONG_MIN
+	andq %rdi, %rdi # if(root)
+	jne true
+	ret
+
+true:
+	pushq %r9
+	pushq %r8
+
+	mrmovq (%rdi), %r8 # max = root->value use this to compare candidate and max
+	rrmovq %rdi, %r9 # backup %rdi 
+	
+	mrmovq 0x8(%r9), %rdi # max_btree(root->left)
+	call max_btree
+	rrmovq %rax, %r10 # copy value into %r10
+	subq %r8, %r10
+	jle maxnotupdated1 # jump if candidate <= max
+	rrmovq %rax, %r8 # max = candidate	
+
+maxnotupdated1:
+	mrmovq 0x10(%r9), %rdi # max_btree(root->right)
+	call max_btree
+	rrmovq %rax, %r10 # copy value into %r10
+	subq %r8, %r10
+
+	jle maxnotupdated2 # jump if candidate <= max
+	rrmovq %rax, %r8 # max = candidate	
+	
+maxnotupdated2:
+	rrmovq %r8, %rax # return max
+	popq %r8
+	popq %r9
+	ret
+	
+# A binary (not search!) tree,
+# absolutely positioned again.
+.pos 0x200
+root:
+.quad 5
+.quad node7
+.quad node12
+
+node7:
+.quad 7
+.quad node25
+.quad node905
+node25:
+.quad 25
+.quad 0
+.quad 0
+node905:
+.quad 905
+.quad nodem1
+.quad 0
+nodem1:
+.quad -1
+.quad 0
+.quad 0
+node12:
+.quad 12
+.quad node219
+.quad nodem10
+node219:
+.quad 219
+.quad 0
+.quad 0
+nodem10:
+.quad -10
+.quad 0
+.quad node331
+node331:
+.quad 331
+.quad 0
+.quad 0
+.pos 0x800:
+Stack:

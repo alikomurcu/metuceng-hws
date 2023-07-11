@@ -1,0 +1,143 @@
+.pos 0
+	irmovq Stack, %rsp
+	irmovq root, %rdi
+    irmovq array, %rsi
+    irmovq $0x8, %rdx
+	call collect_into
+	halt
+
+collect_into:
+    xorq %rax, %rax
+    andq %rdi, %rdi
+    je zero
+    #### root != 0 ####
+    xorq %r12, %r12 # %r12 = 0
+    rrmovq %rdx, %r11
+    subq %r12, %r11
+    jle zero
+    #### array_len > 0 #### else part ####
+    #### push them to not lose the values ####
+    pushq %r13 # gonna be left_len ?
+    pushq %r8 #
+    pushq %r9 #
+    pushq %r10 #
+    #### below is first call ####
+    rrmovq %rdx, %r10 # copy array_len
+    rrmovq %rsi, %r9 # copy array
+    rrmovq %rdi, %r8 # copy root
+    mrmovq 0x8(%r8), %rdi # root->left
+    call collect_into
+    rrmovq %rax, %r13 # left_len
+    #### if(left_len == array_len)
+    rrmovq %r10, %r11 # array_len #### %r11 would be temporary register
+    subq %r13, %r11
+    je retleft # it will return %rax which is left_len
+    #### below is array[left_len] = root->value ####
+    rrmovq %r13, %r11 # %r11 is left_len
+    addq %r11, %r11 # %r11 is 2*left_len
+    addq %r11, %r11 # %r11 is 4* left_len
+    addq %r11, %r11 # %r11 is 8*left_len olmazsa diger turlu
+    #### now we should do array[%r11] = root->value ####
+    rrmovq %r9, %r12 # %r12 is array and TEMP
+    addq %r11, %r12 # %r12 is array[left_len]
+    mrmovq (%r8), %r11 # %r11 is TEMP
+    rmmovq %r11, (%r12) # 
+    #### below is second call ####
+    irmovq $0x1, %r14 # CONSTANT 1
+    #### adjust %rdx ####
+    rrmovq %r10, %r12 # %r12 is array len and TEMP
+    subq %r13, %r12
+    subq %r14, %r12
+    rrmovq %r12, %rdx
+    #### adjust %rsi ####
+    rrmovq %r9, %r12 # %r12 is array and TEMP
+    ####
+    rrmovq %r13, %r11 # %r11 is TEMP and %r11 is left_len
+    addq %r11, %r11 # %r11 is left_len*2
+    addq %r11, %r11 # %r11 is left_len*2
+    addq %r11, %r11 # %r11 is left_len*4
+    addq %r11, %r12 # array + left_len
+    ####
+    rrmovq %r14, %r11 # %r11 is TEMP and %r11 is 1
+    addq %r11, %r11 # %r11 is 2
+    addq %r11, %r11 # %r11 is 4
+    addq %r11, %r11 # %r11 is 8
+    addq %r11, %r12
+    rrmovq %r12, %rsi
+    #### adjust %rdi ####
+    mrmovq 0x10(%r8), %rdi
+
+    call collect_into
+    #### adjust return value ####
+    addq %r13, %rax
+    addq %r14, %rax
+    #### pop the corresponding registers ####
+retleft:
+    popq %r10 #
+    popq %r9 #
+    popq %r8 #
+    popq %r13 # 
+    ret
+zero:
+    ret
+
+
+.pos 0x200
+root:
+.quad 17
+.quad node6
+.quad node24
+node6:
+.quad 6
+.quad node4
+.quad node11
+node4:
+.quad 4
+.quad node3
+.quad node5
+node3:
+.quad 3
+.quad 0
+.quad 0
+node5:
+.quad 5
+.quad 0 # Remember that 0 is null.
+.quad 0
+node11:
+.quad 11
+.quad node8
+.quad 0
+node8:
+.quad 8
+.quad 0
+.quad 0
+node24:
+.quad 24
+.quad node19
+.quad node40
+node19:
+.quad 19
+.quad 0
+.quad 0
+node40:
+.quad 40
+.quad 0
+.quad node52
+node52:
+.quad 52
+.quad 0
+.quad 0
+
+.pos 0x400
+array:
+.quad 0
+.quad 0
+.quad 0
+.quad 0
+.quad 0
+.quad 0
+.quad 0
+.quad 0
+
+.pos 0x800
+Stack:

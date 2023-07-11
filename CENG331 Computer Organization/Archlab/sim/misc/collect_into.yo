@@ -1,0 +1,143 @@
+0x000:                      | .pos 0
+0x000: 30f40008000000000000 | 	irmovq Stack, %rsp
+0x00a: 30f70002000000000000 | 	irmovq root, %rdi
+0x014: 30f60004000000000000 |     irmovq array, %rsi
+0x01e: 30f20800000000000000 |     irmovq $0x8, %rdx
+0x028: 803200000000000000   | 	call collect_into
+0x031: 00                   | 	halt
+                            | 
+0x032:                      | collect_into:
+0x032: 6300                 |     xorq %rax, %rax
+0x034: 6277                 |     andq %rdi, %rdi
+0x036: 73e800000000000000   |     je zero
+                            |     #### root != 0 ####
+0x03f: 63cc                 |     xorq %r12, %r12 # %r12 = 0
+0x041: 202b                 |     rrmovq %rdx, %r11
+0x043: 61cb                 |     subq %r12, %r11
+0x045: 71e800000000000000   |     jle zero
+                            |     #### array_len > 0 #### else part ####
+                            |     #### push them to not lose the values ####
+0x04e: a0df                 |     pushq %r13 # gonna be left_len ?
+0x050: a08f                 |     pushq %r8 #
+0x052: a09f                 |     pushq %r9 #
+0x054: a0af                 |     pushq %r10 #
+                            |     #### below is first call ####
+0x056: 202a                 |     rrmovq %rdx, %r10 # copy array_len
+0x058: 2069                 |     rrmovq %rsi, %r9 # copy array
+0x05a: 2078                 |     rrmovq %rdi, %r8 # copy root
+0x05c: 50780800000000000000 |     mrmovq 0x8(%r8), %rdi # root->left
+0x066: 803200000000000000   |     call collect_into
+0x06f: 200d                 |     rrmovq %rax, %r13 # left_len
+                            |     #### if(left_len == array_len)
+0x071: 20ab                 |     rrmovq %r10, %r11 # array_len #### %r11 would be temporary register
+0x073: 61db                 |     subq %r13, %r11
+0x075: 73df00000000000000   |     je retleft # it will return %rax which is left_len
+                            |     #### below is array[left_len] = root->value ####
+0x07e: 20db                 |     rrmovq %r13, %r11 # %r11 is left_len
+0x080: 60bb                 |     addq %r11, %r11 # %r11 is 2*left_len
+0x082: 60bb                 |     addq %r11, %r11 # %r11 is 4* left_len
+0x084: 60bb                 |     addq %r11, %r11 # %r11 is 8*left_len olmazsa diger turlu
+                            |     #### now we should do array[%r11] = root->value ####
+0x086: 209c                 |     rrmovq %r9, %r12 # %r12 is array and TEMP
+0x088: 60bc                 |     addq %r11, %r12 # %r12 is array[left_len]
+0x08a: 50b80000000000000000 |     mrmovq (%r8), %r11 # %r11 is TEMP
+0x094: 40bc0000000000000000 |     rmmovq %r11, (%r12) # 
+                            |     #### below is second call ####
+0x09e: 30fe0100000000000000 |     irmovq $0x1, %r14 # CONSTANT 1
+                            |     #### adjust %rdx ####
+0x0a8: 20ac                 |     rrmovq %r10, %r12 # %r12 is array len and TEMP
+0x0aa: 61dc                 |     subq %r13, %r12
+0x0ac: 61ec                 |     subq %r14, %r12
+0x0ae: 20c2                 |     rrmovq %r12, %rdx
+                            |     #### adjust %rsi ####
+0x0b0: 209c                 |     rrmovq %r9, %r12 # %r12 is array and TEMP
+                            |     ####
+0x0b2: 20db                 |     rrmovq %r13, %r11 # %r11 is TEMP and %r11 is left_len
+0x0b4: 60bb                 |     addq %r11, %r11 # %r11 is left_len*2
+0x0b6: 60bb                 |     addq %r11, %r11 # %r11 is left_len*2
+0x0b8: 60bb                 |     addq %r11, %r11 # %r11 is left_len*4
+0x0ba: 60bc                 |     addq %r11, %r12 # array + left_len
+                            |     ####
+0x0bc: 20eb                 |     rrmovq %r14, %r11 # %r11 is TEMP and %r11 is 1
+0x0be: 60bb                 |     addq %r11, %r11 # %r11 is 2
+0x0c0: 60bb                 |     addq %r11, %r11 # %r11 is 4
+0x0c2: 60bb                 |     addq %r11, %r11 # %r11 is 8
+0x0c4: 60bc                 |     addq %r11, %r12
+0x0c6: 20c6                 |     rrmovq %r12, %rsi
+                            |     #### adjust %rdi ####
+0x0c8: 50781000000000000000 |     mrmovq 0x10(%r8), %rdi
+                            | 
+0x0d2: 803200000000000000   |     call collect_into
+                            |     #### adjust return value ####
+0x0db: 60d0                 |     addq %r13, %rax
+0x0dd: 60e0                 |     addq %r14, %rax
+                            |     #### pop the corresponding registers ####
+0x0df:                      | retleft:
+0x0df: b0af                 |     popq %r10 #
+0x0e1: b09f                 |     popq %r9 #
+0x0e3: b08f                 |     popq %r8 #
+0x0e5: b0df                 |     popq %r13 # 
+0x0e7: 90                   |     ret
+0x0e8:                      | zero:
+0x0e8: 90                   |     ret
+                            | 
+                            | 
+0x200:                      | .pos 0x200
+0x200:                      | root:
+0x200: 1100000000000000     | .quad 17
+0x208: 1802000000000000     | .quad node6
+0x210: a802000000000000     | .quad node24
+0x218:                      | node6:
+0x218: 0600000000000000     | .quad 6
+0x220: 3002000000000000     | .quad node4
+0x228: 7802000000000000     | .quad node11
+0x230:                      | node4:
+0x230: 0400000000000000     | .quad 4
+0x238: 4802000000000000     | .quad node3
+0x240: 6002000000000000     | .quad node5
+0x248:                      | node3:
+0x248: 0300000000000000     | .quad 3
+0x250: 0000000000000000     | .quad 0
+0x258: 0000000000000000     | .quad 0
+0x260:                      | node5:
+0x260: 0500000000000000     | .quad 5
+0x268: 0000000000000000     | .quad 0 # Remember that 0 is null.
+0x270: 0000000000000000     | .quad 0
+0x278:                      | node11:
+0x278: 0b00000000000000     | .quad 11
+0x280: 9002000000000000     | .quad node8
+0x288: 0000000000000000     | .quad 0
+0x290:                      | node8:
+0x290: 0800000000000000     | .quad 8
+0x298: 0000000000000000     | .quad 0
+0x2a0: 0000000000000000     | .quad 0
+0x2a8:                      | node24:
+0x2a8: 1800000000000000     | .quad 24
+0x2b0: c002000000000000     | .quad node19
+0x2b8: d802000000000000     | .quad node40
+0x2c0:                      | node19:
+0x2c0: 1300000000000000     | .quad 19
+0x2c8: 0000000000000000     | .quad 0
+0x2d0: 0000000000000000     | .quad 0
+0x2d8:                      | node40:
+0x2d8: 2800000000000000     | .quad 40
+0x2e0: 0000000000000000     | .quad 0
+0x2e8: f002000000000000     | .quad node52
+0x2f0:                      | node52:
+0x2f0: 3400000000000000     | .quad 52
+0x2f8: 0000000000000000     | .quad 0
+0x300: 0000000000000000     | .quad 0
+                            | 
+0x400:                      | .pos 0x400
+0x400:                      | array:
+0x400: 0000000000000000     | .quad 0
+0x408: 0000000000000000     | .quad 0
+0x410: 0000000000000000     | .quad 0
+0x418: 0000000000000000     | .quad 0
+0x420: 0000000000000000     | .quad 0
+0x428: 0000000000000000     | .quad 0
+0x430: 0000000000000000     | .quad 0
+0x438: 0000000000000000     | .quad 0
+                            | 
+0x800:                      | .pos 0x800
+0x800:                      | Stack:

@@ -1,0 +1,1 @@
+DELETE FROM Vaccine WHERE vaccinename = 'Convidecia';

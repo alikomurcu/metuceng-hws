@@ -1,0 +1,411 @@
+                            | #######################################################################
+                            | # Test for copying block of size K;
+                            | #######################################################################
+0x000:                      | 	.pos 0
+0x000: 30f48005000000000000 | main:	irmovq Stack, %rsp  	# Set up stack pointer
+                            | 
+                            | 	# Set up arguments for copy function and then invoke it
+0x00a: 30f2ffffffffffffffff | 	irmovq $K, %rdx		# src and dst have K elements
+0x014: 30f6f804000000000000 | 	irmovq dest, %rsi	# dst array
+0x01e: 30f7e804000000000000 | 	irmovq src, %rdi	# src array
+                            |     # corrupt all the unused registers to prevent assumptions
+0x028: 30f03103710500000000 |     irmovq $0x5710331, %rax
+0x032: 30f33103710500000000 |     irmovq $0x5710331, %rbx
+0x03c: 30f13103710500000000 |     irmovq $0x5710331, %rcx
+0x046: 30f53103710500000000 |     irmovq $0x5710331, %rbp
+0x050: 30f83103710500000000 |     irmovq $0x5710331, %r8
+0x05a: 30f93103710500000000 |     irmovq $0x5710331, %r9
+0x064: 30fa3103710500000000 |     irmovq $0x5710331, %r10
+0x06e: 30fb3103710500000000 |     irmovq $0x5710331, %r11
+0x078: 30fc3103710500000000 |     irmovq $0x5710331, %r12
+0x082: 30fd3103710500000000 |     irmovq $0x5710331, %r13
+0x08c: 30fe3103710500000000 |     irmovq $0x5710331, %r14
+0x096: 80a900000000000000   | 	call absrev		 
+0x09f: 807303000000000000   | 	call check	        # Call checker code
+0x0a8: 00                   | 	halt                # should halt with 0xaaaa in %rax
+0x0a9:                      | StartFun:
+                            | #/* $begin absrev-ys */
+                            | ##################################################################
+                            | # absrev.ys - Reverse a src block of len words to dst.
+                            | # Return the sum of absolute values of words contained in src.
+                            | #
+                            | # Include your name and ID here. Ali KOMURCU 2380699
+                            | # Describe how and why you modified the baseline code.
+                            | ##################################################################
+                            | # Do not modify this portion
+                            | # Function prologue.
+                            | # %rdi = src, %rsi = dst, %rdx = len
+0x0a9:                      | absrev:
+                            | ##################################################################
+                            | ## Firstly I modify adding in a different way. 17.83 -> 17.61
+                            | ## Then I store constant values into registers. 17.61 -> 15.83
+                            | ## Then I did array unrolling. 15.83 -> 11.51
+                            | ## And make some stalls such as moving xorq lines in between mrmovq and rmmovq in the loop . 11.51 -> 10.51
+                            | ## Then I did some leaq for taking %rsi to the end of the array. 10.51 -> 10.43
+                            | ## Then I choose not to increment %rdi and %rsi when %rdx = 1. 10.43 -> 10.35
+                            | ## Then I little bit change the organization of codes subq to leaq. 10.35 -> 10.13
+                            | ## Then little bit more leaq changes :) 10.13 -> 9.76
+                            | ## Then I've changed some control logic. 9.76 -> 9.61
+                            | ## Another control logic changes. 9.61 -> 9.57
+                            | ## And find an erronous comparison, delete it. 9.57 -> 9.40
+                            | ## And deleting another redundant lines 9.40 -> 9.30
+                            | 
+                            | # You can modify this portion
+0x0a9: 6300                 |     xorq %rax,%rax    	# sum = 0;
+                            |     # Loop header
+                            |     # all this for dst_rev = dst + len - 1
+                            |     #### Multiply with 8 by adding itself 3 times. (2^3 = 8)
+0x0ab: d0c2ffffffffffffffff |     leaq -1(%rdx), %r12 # copy %rdx
+0x0b5: 60cc                 |     addq %r12, %r12 # %rdx is 2*%rdx
+                            |     #irmovq $1, %r11
+0x0b7: 60cc                 |     addq %r12, %r12 # %rdx is 4*%rdx
+                            |     #irmovq $8, %r8      # for subtracting 8
+0x0b9: 60cc                 |     addq %r12, %r12 # %rdx is 8*%rdx
+                            |     #irmovq $4, %r13
+0x0bb: 60c6                 |     addq %r12, %rsi     # add len eight times and replace %rcx with %rsi
+                            |     #### CPE : 17.83 -> 17.61
+                            |     #### Hold CONSTANT values in registers.
+                            |     #### CPE : 17.61 -> 15.68
+                            | 
+                            |     #irmovq $2, %r14
+                            |     #irmovq $0x40, %rbx
+                            | 
+                            |     #irmovq $0x20, %rcx
+                            |     #### Change %rcx to %rsi and delete the xorq %rcx, %rcx 
+                            |     #subq %r8, %rsi      
+                            |     ### CPE : 15.68 -> 15.53
+                            |     #andq %rdx,%rdx    	# len <= 0?
+                            |     ##### 
+                            |     #jg Loop
+                            |     #jmp Done            # if so, goto Done:
+                            |     #jle Done
+                            |     #### 15.68 -> 15.38
+0x0bd: e0f20800000000000000 |     icmpq $0x8, %rdx # if len >= 8 go ge8
+0x0c7: 75d900000000000000   |     jge ge8
+0x0d0: 72f401000000000000   |     jl ge4
+0x0d9:                      | ge8:
+                            |     ###################1#########################
+                            | 
+0x0d9: 50a70000000000000000 |     mrmovq (%rdi), %r10 # read val from src...
+0x0e3: d022f8ffffffffffffff |     leaq -8(%rdx), %rdx # len -= 8
+0x0ed: 6399                 |  	xorq %r9,%r9          # Constant 0
+0x0ef: 40a60000000000000000 |     rmmovq %r10, (%rsi) # ...and store it to dst
+                            |     #rmmovq %r10, (%rcx)
+                            |     #############################################
+0x0f9: 61a9                 | 	subq %r10,%r9		# -x
+0x0fb: 269a                 | 	cmovg %r9,%r10
+                            | 
+                            |     ####################2########################
+0x0fd:                      | c8_1:
+0x0fd: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x0ff: 50a70800000000000000 |     mrmovq 8(%rdi), %r10 # read val from src...
+0x109: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x10b: 40a6f8ffffffffffffff |     rmmovq %r10, -8(%rsi) # ...and store it to dst
+                            |     #############################################
+0x115: 61a9                 | 	subq %r10,%r9		# -x
+0x117: 269a                 | 	cmovg %r9,%r10
+                            |     ####################3########################
+0x119:                      | c8_2:
+0x119: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x11b: 50a71000000000000000 |     mrmovq 16(%rdi), %r10 # read val from src...
+0x125: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x127: 40a6f0ffffffffffffff |     rmmovq %r10, -16(%rsi) # ...and store it to dst
+                            |     #############################################
+0x131: 61a9                 | 	subq %r10,%r9		# -x
+0x133: 269a                 | 	cmovg %r9,%r10
+                            |     ####################4########################
+0x135:                      | c8_3:
+0x135: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x137: 50a71800000000000000 |     mrmovq 24(%rdi), %r10 # read val from src...
+0x141: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x143: 40a6e8ffffffffffffff |     rmmovq %r10, -24(%rsi) # ...and store it to dst
+                            |     #############################################
+0x14d: 61a9                 | 	subq %r10,%r9		# -x
+0x14f: 269a                 | 	cmovg %r9,%r10
+                            |     ####################5########################
+0x151:                      | c8_4:
+0x151: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x153: 50a72000000000000000 |     mrmovq 32(%rdi), %r10 # read val from src...
+0x15d: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x15f: 40a6e0ffffffffffffff |     rmmovq %r10, -32(%rsi) # ...and store it to dst
+                            |     #############################################
+0x169: 61a9                 | 	subq %r10,%r9		# -x
+0x16b: 269a                 | 	cmovg %r9,%r10
+                            |     ####################6########################
+0x16d:                      | c8_5:
+0x16d: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x16f: 50a72800000000000000 |     mrmovq 40(%rdi), %r10 # read val from src...
+0x179: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x17b: 40a6d8ffffffffffffff |     rmmovq %r10, -40(%rsi) # ...and store it to dst
+                            |     ##############################################
+0x185: 61a9                 | 	subq %r10,%r9		# -x
+0x187: 269a                 | 	cmovg %r9,%r10
+                            |     ####################7########################
+0x189:                      | c8_6:
+0x189: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x18b: 50a73000000000000000 |     mrmovq 48(%rdi), %r10 # read val from src...
+0x195: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x197: 40a6d0ffffffffffffff |     rmmovq %r10, -48(%rsi) # ...and store it to dst
+                            |     #############################################
+0x1a1: 61a9                 | 	subq %r10,%r9		# -x
+0x1a3: 269a                 | 	cmovg %r9,%r10
+                            |     ####################8########################
+0x1a5:                      | c8_7:
+0x1a5: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x1a7: 50a73800000000000000 |     mrmovq 56(%rdi), %r10 # read val from src...
+0x1b1: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x1b3: 40a6c8ffffffffffffff |     rmmovq %r10, -56(%rsi) # ...and store it to dst
+                            |     #############################################    
+0x1bd: d0774000000000000000 |     leaq 64(%rdi), %rdi  # %rdi + 0x40
+0x1c7: d066c0ffffffffffffff |     leaq -64(%rsi), %rsi  # %rdi - 0x40
+                            | 
+0x1d1: 61a9                 | 	subq %r10,%r9		# -x
+0x1d3: 269a                 | 	cmovg %r9,%r10
+                            | 
+0x1d5: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x1d7: e0f20800000000000000 |     icmpq $0x8, %rdx # if len >= 8 go ge8
+0x1e1: 75d900000000000000   |     jge ge8
+0x1ea: 72f401000000000000   |     jl ge4
+0x1f3: 90                   |     ret
+                            | 
+                            |     #############################################
+0x1f4:                      | ge4:
+0x1f4: e0f20400000000000000 |     icmpq $0x4, %rdx
+0x1fe: 72b202000000000000   |     jl ge2
+                            |     ###################1#########################
+0x207: d022fcffffffffffffff |     leaq -4(%rdx), %rdx # len -= 4
+                            | 
+0x211: 50a70000000000000000 |     mrmovq (%rdi), %r10 # read val from src...
+0x21b: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x21d: 40a60000000000000000 |     rmmovq %r10, (%rsi) # ...and store it to dst
+                            |     #rmmovq %r10, (%rcx)
+                            |     #############################################    
+0x227: 61a9                 | 	subq %r10,%r9		# -x
+0x229: 269a                 | 	cmovg %r9,%r10
+                            |     ####################2########################
+0x22b:                      | c4_1:
+0x22b: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x22d: 50a70800000000000000 |     mrmovq 8(%rdi), %r10 # read val from src...
+0x237: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x239: 40a6f8ffffffffffffff |     rmmovq %r10, -8(%rsi) # ...and store it to dst
+                            |     ##############################################
+0x243: 61a9                 | 	subq %r10,%r9		# -x
+0x245: 269a                 | 	cmovg %r9,%r10
+                            |     ####################3########################
+0x247:                      | c4_2:
+0x247: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x249: 50a71000000000000000 |     mrmovq 16(%rdi), %r10 # read val from src...
+0x253: 6399                 |  	xorq %r9,%r9          # Constant 0
+0x255: 40a6f0ffffffffffffff |     rmmovq %r10, -16(%rsi) # ...and store it to dst
+                            |     #############################################
+0x25f: 61a9                 | 	subq %r10,%r9		# -x
+0x261: 269a                 | 	cmovg %r9,%r10
+                            |     ####################4########################
+0x263:                      | c4_3:
+0x263: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x265: 50a71800000000000000 |     mrmovq 24(%rdi), %r10 # read val from src...
+0x26f: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x271: 40a6e8ffffffffffffff |     rmmovq %r10, -24(%rsi) # ...and store it to dst
+                            |     #############################################
+0x27b: d0772000000000000000 |     leaq 32(%rdi), %rdi
+0x285: d066e0ffffffffffffff |     leaq -32(%rsi), %rsi
+                            |     #############################################
+0x28f: 61a9                 | 	subq %r10,%r9		# -x
+0x291: 269a                 | 	cmovg %r9,%r10
+                            | 
+0x293: 60a0                 |     addq %r10, %rax     # sum += absval
+0x295: e0f20400000000000000 |     icmpq $0x4, %rdx
+0x29f: 75f401000000000000   |     jge ge4
+0x2a8: 72b202000000000000   |     jl ge2
+0x2b1: 90                   |     ret
+                            |     ####################5########################
+                            | 
+0x2b2:                      | ge2:
+0x2b2: e0f20200000000000000 |     icmpq $0x2, %rdx
+0x2bc: 723803000000000000   |     jl ge1
+                            |     ###################1#########################
+0x2c5: d022feffffffffffffff |     leaq -2(%rdx), %rdx # len -= 2
+                            | 
+0x2cf: 50a70000000000000000 |     mrmovq (%rdi), %r10 # read val from src...
+0x2d9: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x2db: 40a60000000000000000 |     rmmovq %r10, (%rsi) # ...and store it to dst
+                            |     #rmmovq %r10, (%rcx)
+                            |     #############################################
+0x2e5: 61a9                 | 	subq %r10,%r9		# -x
+0x2e7: 269a                 | 	cmovg %r9,%r10
+                            |     ####################2########################
+0x2e9:                      | c2_1:
+0x2e9: 60a0                 |     addq %r10, %rax     # sum += absval
+                            | 
+0x2eb: 50a70800000000000000 |     mrmovq 8(%rdi), %r10 # read val from src...
+0x2f5: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x2f7: 40a6f8ffffffffffffff |     rmmovq %r10, -8(%rsi) # ...and store it to dst
+                            |     #############################################
+                            |     #addq %r8, %rdi
+                            |     #addq %r8, %rdi
+0x301: d0771000000000000000 |     leaq 16(%rdi), %rdi
+0x30b: d066f0ffffffffffffff |     leaq -16(%rsi), %rsi
+                            |     #subq %r8, %rsi
+                            |     #subq %r8, %rsi
+                            |     #############################################
+0x315: 61a9                 | 	subq %r10,%r9		# -x
+0x317: 269a                 | 	cmovg %r9,%r10
+                            | 
+0x319: 60a0                 |     addq %r10, %rax     # sum += absval
+0x31b: e0f20200000000000000 |     icmpq $0x2, %rdx
+0x325: 75b202000000000000   |     jge ge2
+0x32e: 723803000000000000   |     jl ge1
+                            |     #icmpq $0x1, %rdx
+                            |     #jge ge1
+0x337: 90                   |     ret
+                            | 
+0x338:                      | ge1:
+0x338: e0f20100000000000000 |     icmpq $0x1, %rdx
+0x342: 727203000000000000   |     jl Done
+                            | 
+                            |     ###################1#########################
+0x34b: d022ffffffffffffffff |     leaq -1(%rdx), %rdx # len -= 1
+                            | 
+0x355: 50a70000000000000000 |     mrmovq (%rdi), %r10 # read val from src...
+0x35f: 6399                 | 	xorq %r9,%r9          # Constant 0
+0x361: 40a60000000000000000 |     rmmovq %r10, (%rsi) # ...and store it to dst
+                            |     #rmmovq %r10, (%rcx)
+                            |     #############################################
+0x36b: 61a9                 | 	subq %r10,%r9		# -x
+0x36d: 269a                 | 	cmovg %r9,%r10
+                            | 
+0x36f: 60a0                 |     addq %r10, %rax     # sum += absval
+0x371: 90                   |     ret
+                            |     ####################2########################
+                            | ##################################################################
+                            | # Do not modify the following section of code
+                            | # Function epilogue.
+0x372:                      | Done:
+0x372: 90                   |     ret
+                            | ##################################################################
+                            | # Keep the following label at the end of your function
+0x373:                      | End:
+                            | #/* $end absrev-ys */
+0x373:                      | EndFun:
+                            | #################################################################### 
+                            | # Epilogue code for the correctness testing driver
+                            | ####################################################################
+                            | 
+                            | # This is the correctness checking code.
+                            | # It checks:
+                            | #   1. %rax has 0.  Set %rax to 0xbbbb if not.
+                            | #   2. The total length of the code is less than or equal to 1000.
+                            | #      Set %rax to 0xcccc if not.
+                            | #   3. The source data was copied to the destination in reverse.
+                            | #      Set %rax to 0xdddd if not.
+                            | #   4. The words just before and just after the destination region
+                            | #      were not corrupted.  Set %rax to 0xeeee if not.
+                            | # If all checks pass, then sets %rax to 0xaaaa
+0x373:                      | check:
+                            | 	# Return value test
+0x373: 30fa0000000000000000 | 	irmovq $0,%r10
+0x37d: 61a0                 | 	subq %r10,%rax
+0x37f: 739b03000000000000   | 	je checkb
+0x388: 30f0bbbb000000000000 | 	irmovq $0xbbbb,%rax  # Failed test #1
+0x392: 70e504000000000000   | 	jmp cdone
+0x39b:                      | checkb:
+                            | 	# Code length check
+0x39b: 30f07303000000000000 | 	irmovq EndFun,%rax
+0x3a5: 30f2a900000000000000 | 	irmovq StartFun,%rdx
+0x3af: 6120                 | 	subq %rdx,%rax
+0x3b1: 30f2e803000000000000 | 	irmovq $1000,%rdx
+0x3bb: 6102                 | 	subq %rax,%rdx
+0x3bd: 75d903000000000000   | 	jge checkm
+0x3c6: 30f0cccc000000000000 | 	irmovq $0xcccc,%rax  # Failed test #2
+0x3d0: 70e504000000000000   | 	jmp cdone
+0x3d9:                      | checkm:
+0x3d9: 30f6f8ffffffffffffff |     irmovq $-8, %rsi
+0x3e3: 30f2f804000000000000 | 	irmovq dest, %rdx 
+0x3ed: 6062                 | 	addq %rsi, %rdx   # Pointer to next destination location
+0x3ef: 30f3e804000000000000 | 	irmovq src,%rbx   # Pointer to next source location
+0x3f9: 30f7ffffffffffffffff | 	irmovq $K,%rdi  # Count
+0x403: 6277                 | 	andq %rdi,%rdi
+0x405: 736304000000000000   | 	je checkpre         # Skip check if count = 0
+0x40e:                      | mcloop:
+0x40e: 50020000000000000000 | 	mrmovq (%rdx),%rax
+0x418: 50630000000000000000 | 	mrmovq (%rbx),%rsi
+0x422: 6160                 | 	subq %rsi,%rax
+0x424: 734004000000000000   | 	je  mok
+0x42d: 30f0dddd000000000000 | 	irmovq $0xdddd,%rax # Failed test #3
+0x437: 70e504000000000000   | 	jmp cdone
+0x440:                      | mok:
+0x440: 30f00800000000000000 | 	irmovq $8,%rax
+0x44a: 6102                 | 	subq %rax,%rdx	  # dest--
+0x44c: 6003                 | 	addq %rax,%rbx    # src++
+0x44e: 30f00100000000000000 | 	irmovq $1,%rax
+0x458: 6107                 | 	subq %rax,%rdi    # cnt--
+0x45a: 760e04000000000000   | 	jg mcloop
+0x463:                      | checkpre:
+                            | 	# Check for corruption
+0x463: 30f2f004000000000000 | 	irmovq Predest,%rdx
+0x46d: 50020000000000000000 | 	mrmovq (%rdx), %rax  # Get word before destination
+0x477: 30f2fadebc0000000000 | 	irmovq $0xbcdefa, %rdx
+0x481: 6120                 | 	subq %rdx,%rax
+0x483: 739f04000000000000   | 	je checkpost
+0x48c: 30f0eeee000000000000 | 	irmovq $0xeeee,%rax  # Failed test #4
+0x496: 70e504000000000000   | 	jmp cdone
+0x49f:                      | checkpost:
+                            | 	# Check for corruption
+0x49f: 30f2f804000000000000 | 	irmovq Postdest,%rdx
+0x4a9: 50020000000000000000 | 	mrmovq (%rdx), %rax  # Get word after destination
+0x4b3: 30f2bcfade0000000000 | 	irmovq $0xdefabc, %rdx
+0x4bd: 6120                 | 	subq %rdx,%rax
+0x4bf: 73db04000000000000   | 	je checkok
+0x4c8: 30f0eeee000000000000 | 	irmovq $0xeeee,%rax # Failed test #4
+0x4d2: 70e504000000000000   | 	jmp cdone
+0x4db:                      | checkok:
+                            | 	# Successful checks
+0x4db: 30f0aaaa000000000000 | 	irmovq $0xaaaa,%rax
+0x4e5:                      | cdone:
+0x4e5: 90                   | 	ret
+                            | 
+                            | ###############################
+                            | # Source and destination blocks 
+                            | ###############################
+0x4e8:                      | 	.align 8
+0x4e8:                      | src:
+0x4e8: fadebc0000000000     | 	.quad 0xbcdefa # This shouldn't get moved
+                            | 
+0x4f0:                      | 	.align 16
+0x4f0:                      | Predest:
+0x4f0: fadebc0000000000     | 	.quad 0xbcdefa
+0x4f8:                      | dest:
+0x4f8:                      | Postdest:
+0x4f8: bcfade0000000000     | 	.quad 0xdefabc
+                            | 
+0x500:                      | .align 8
+                            | # Run time stack
+0x500: 0000000000000000     | 	.quad 0
+0x508: 0000000000000000     | 	.quad 0
+0x510: 0000000000000000     | 	.quad 0
+0x518: 0000000000000000     | 	.quad 0
+0x520: 0000000000000000     | 	.quad 0
+0x528: 0000000000000000     | 	.quad 0
+0x530: 0000000000000000     | 	.quad 0
+0x538: 0000000000000000     | 	.quad 0
+0x540: 0000000000000000     | 	.quad 0
+0x548: 0000000000000000     | 	.quad 0
+0x550: 0000000000000000     | 	.quad 0
+0x558: 0000000000000000     | 	.quad 0
+0x560: 0000000000000000     | 	.quad 0
+0x568: 0000000000000000     | 	.quad 0
+0x570: 0000000000000000     | 	.quad 0
+0x578: 0000000000000000     | 	.quad 0
+                            | 
+0x580:                      | Stack:

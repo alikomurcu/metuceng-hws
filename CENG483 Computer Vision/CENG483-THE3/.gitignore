@@ -1,0 +1,6 @@
+*.tar.gz
+*data/
+.idea
+*.iml
+*.png
+*.txt
